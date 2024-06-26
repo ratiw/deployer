@@ -102,11 +102,6 @@ task('provision:update', function () {
     run("curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list");
 
     // Nodejs
-    // $keyring = '/usr/share/keyrings/nodesource.gpg';
-    // run("curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee '$keyring' >/dev/null");
-    // run("gpg --no-default-keyring --keyring '$keyring' --list-keys");
-    // run("echo 'deb [signed-by=$keyring] https://deb.nodesource.com/{{nodejs_version}} {{lsb_release}} main' | sudo tee /etc/apt/sources.list.d/nodesource.list");
-    // run("echo 'deb-src [signed-by=$keyring] https://deb.nodesource.com/{{nodejs_version}} {{lsb_release}} main' | sudo tee -a /etc/apt/sources.list.d/nodesource.list");
     run("curl -sL https://deb.nodesource.com/{{nodejs_version_setup}} | sudo -E bash -");
 
     // Update
