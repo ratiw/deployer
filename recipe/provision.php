@@ -47,15 +47,12 @@ task('provision:check', function () {
 
     $release = run('cat /etc/os-release');
     ['NAME' => $name, 'VERSION_ID' => $version] = parse_ini_string($release);
-    if ($name !== 'Ubuntu' || $version !== '20.04') {
+    if ($name !== 'Ubuntu' || $version !== '22.04') {
         warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
         warning('!!                                    !!');
-        warning('!!  Only Ubuntu 20.04 LTS supported!  !!');
+        warning('!!  Only Ubuntu 22.04 LTS supported!  !!');
         warning('!!                                    !!');
         warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-        if (!askConfirmation(' Do you want to continue? (Not recommended)', false)) {
-            throw new \RuntimeException('Provision aborted due to incompatible OS.');
-        }
     }
 })->oncePerNode();
 
@@ -105,11 +102,12 @@ task('provision:update', function () {
     run("curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list");
 
     // Nodejs
-    $keyring = '/usr/share/keyrings/nodesource.gpg';
-    run("curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee '$keyring' >/dev/null");
-    run("gpg --no-default-keyring --keyring '$keyring' --list-keys");
-    run("echo 'deb [signed-by=$keyring] https://deb.nodesource.com/{{nodejs_version}} {{lsb_release}} main' | sudo tee /etc/apt/sources.list.d/nodesource.list");
-    run("echo 'deb-src [signed-by=$keyring] https://deb.nodesource.com/{{nodejs_version}} {{lsb_release}} main' | sudo tee -a /etc/apt/sources.list.d/nodesource.list");
+    // $keyring = '/usr/share/keyrings/nodesource.gpg';
+    // run("curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee '$keyring' >/dev/null");
+    // run("gpg --no-default-keyring --keyring '$keyring' --list-keys");
+    // run("echo 'deb [signed-by=$keyring] https://deb.nodesource.com/{{nodejs_version}} {{lsb_release}} main' | sudo tee /etc/apt/sources.list.d/nodesource.list");
+    // run("echo 'deb-src [signed-by=$keyring] https://deb.nodesource.com/{{nodejs_version}} {{lsb_release}} main' | sudo tee -a /etc/apt/sources.list.d/nodesource.list");
+    run("curl -sL https://deb.nodesource.com/{{nodejs_version_setup}} | sudo -E bash -");
 
     // Update
     run('apt-get update', ['env' => ['DEBIAN_FRONTEND' => 'noninteractive']]);
@@ -236,7 +234,7 @@ set('sudo_password', function () {
 
 // Specify which key to copy to server.
 // Set to `false` to disable copy of key.
-set('ssh_copy_id', '~/.ssh/id_rsa.pub');
+set('ssh_copy_id', '~/.ssh/id_ed25519.pub');
 
 desc('Setups a deployer user');
 task('provision:deployer', function () {
@@ -266,18 +264,18 @@ task('provision:deployer', function () {
             if (!file_exists($file)) {
                 info('Configure path to your public key.');
                 writeln("");
-                writeln("    set(<info>'ssh_copy_id'</info>, <info>'~/.ssh/id_rsa.pub'</info>);");
+                writeln("    set(<info>'ssh_copy_id'</info>, <info>'~/.ssh/id_ed25519.pub'</info>);");
                 writeln("");
-                $file = ask(' Specify path to your public ssh key: ', '~/.ssh/id_rsa.pub');
+                $file = ask(' Specify path to your public ssh key: ', '~/.ssh/id_ed25519.pub');
             }
             run('echo "$KEY" >> /root/.ssh/authorized_keys', ['env' => ['KEY' => file_get_contents(parse_home_dir($file))]]);
         }
         run('cp /root/.ssh/authorized_keys /home/deployer/.ssh/authorized_keys');
-        run('ssh-keygen -f /home/deployer/.ssh/id_rsa -t rsa -N ""');
+        run('ssh-keygen -f /home/deployer/.ssh/id_ed25519 -t ed25519 -N ""');
 
         run('chown -R deployer:deployer /home/deployer');
         run('chmod -R 755 /home/deployer');
-        run('chmod 700 /home/deployer/.ssh/id_rsa');
+        run('chmod 700 /home/deployer/.ssh/id_ed25519');
 
         run('usermod -a -G www-data deployer');
         run('usermod -a -G caddy deployer');
