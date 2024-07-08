@@ -44,8 +44,8 @@ task('provision:website', function () {
         run("echo $'$caddyfile' > Caddyfile");
     }
 
-    if (!test("grep -q 'import {{deploy_path}}/Caddyfile' /etc/caddy/Caddyfile")) {
-        run("echo 'import {{deploy_path}}/Caddyfile' >> /etc/caddy/Caddyfile");
+    if (!test("grep -q 'import /home/deployer/Caddyfile' /etc/caddy/Caddyfile")) {
+        run("echo 'import /home/deployer/Caddyfile' >> /etc/caddy/Caddyfile");
     }
     run('service caddy reload');
 
